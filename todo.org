@@ -1,0 +1,15 @@
+#+title: COMS3200 Assignment 1
+#+author: Tom Midson
+#+email: midson.trc@gmail.com
+
+
+* Part A
+
+** TODO Reread specification
+- Reread spec sheet and break down assignment into separate tasks
+SCHEDULED: <2015-03-24 Tue>
+
+* Part B
+
+** TODO Implement non-blocking name server.
+SCHEDULED: <2015-03-23 Mon>
