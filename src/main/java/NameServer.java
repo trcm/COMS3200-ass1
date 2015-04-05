@@ -76,7 +76,7 @@ public class NameServer {
 	    if (hosts.containsKey(query)) {
 		// System.out.println("query in hashmap");
 		String val[] = (String[])hosts.get(query);
-		ret.add(val[0] + " " + val[1]);
+		ret.add(val[0] + " " + val[1] + "\n");
 		return ret;
 		// if the process isn't registered then return the appropriate error
 	    } else {
@@ -88,7 +88,7 @@ public class NameServer {
 	    if (tokens.length != 4) {
 		// System.out.println("register error");
 		ret.add("error");
-		// break;
+		return ret;
 	    } else {
 		String name;
 		String[] details = new String[2];
@@ -103,7 +103,7 @@ public class NameServer {
 		
 		// System.out.println(hosts.size());
 		
-		ret.add("registered");
+		ret.add("registered\n");
 
 		return ret;
 	    }
@@ -176,6 +176,7 @@ public class NameServer {
 			    // finished reading, form message
 			    if (readBytes > 0) {
 				message = Charset.forName("UTF-8").decode(buffer).toString();
+				System.out.println(message);
 				buffer = null;
 			    }
 			} finally {
@@ -185,28 +186,43 @@ public class NameServer {
 			// react by Client's message
 			if (readBytes > 0) {
 			    // System.out.println("Message from Client" + sc.getRemoteAddress() + ": " + message);
-			    // if exit, close socket channel
-			    // if ("exit".equalsIgnoreCase(message.trim())) {
-			    // 	System.out.println("Client " + sc.getRemoteAddress() +" finish up");
-			    // 	sc.close();
 			    // check if the message is a lookup or register query
-			    if (message.toLowerCase().trim().contains("lookup") || message.toLowerCase().trim().contains("register")) {
+			    if (message.toLowerCase().trim().contains("exit")) {
+				sc.close();
+				break;
+			    } else if (message.toLowerCase().trim().contains("lookup") || message.toLowerCase().trim().contains("register")) {
 				// sc.register(key.selector(), SelectionKey.OP_WRITE, "parsing\n");
 				ArrayList parsed = parseMessage(message);
-				if (parsed.get(0) == "error") {
-				    // System.out.println("crashed");
-				    sc.register(key.selector(), SelectionKey.OP_WRITE, parsed.get(0));
-				    sc.close();
-				    break;
-				} else {
-				    sc.register(key.selector(), SelectionKey.OP_WRITE, parsed.get(0));
-				}
+				ByteBuffer send = Charset.forName("UTF-8").encode((String)parsed.get(0));
+				System.out.println(sc.write(send));
+				// sc.close();
+				// buffer.flip();
+				
+				// if (parsed.get(0) == "error") {
+				//     // System.out.println("crashed");
+
+				//     // create bytebuffer and send it
+				//     // ByteBuffer send = Charset.forName("UTF-8").encode((String)parsed.get(0));
+				//     // System.out.println(send);
+				//     // sc.register(selector, SelectionKey.OP_WRITE);
+				//     // sc.write(send);
+				//     // // sc.register(key.selector(), SelectionKey.OP_WRITE, parsed.get(0));
+				//     sc.close();
+				//     break;
+				// } else {
+				//     // parsing was successful, send the information back to the client
+				//     ByteBuffer send = Charset.forName("UTF-8").encode((String)parsed.get(0));
+				//     sc.register(selector, SelectionKey.OP_READ, buffer);
+				//     System.out.println(parsed.get(0));
+				//     sc.write(send);
+				//     // sc.close();
+				// }
 			    } else {
 				// junk message is received, close collection
 				sc.close();
-				// sc.register(key.selector(), SelectionKey.OP_WRITE, message.toUpperCase());
 			    }
 			}
+			
 		    }
 		    // test whether this key's channel is ready for sending to Client
 		    else if (key.isWritable()) {
