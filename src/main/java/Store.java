@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.nio.file.Files;
 import java.nio.charset.Charset;
 import java.nio.file.*;
+import java.math.BigInteger;
 
 public class Store {
 
@@ -94,17 +95,24 @@ public class Store {
 
 
     /**
-     * documentation
+     * public boolean readStockFile()
+     * Reads the stock file given via the command line arguments and
+     * parses it's content.
+     *
+     * Post: Populates the content hashmap
+
      */
     public boolean readStockFile() {
 	Charset charset = Charset.forName("US-ASCII");
 	try {
 	    Path stock = Paths.get(stockFile);
 	    BufferedReader buff =  Files.newBufferedReader(stock);
-
 	    String line;
 	    while ((line = buff.readLine()) != null) {
-		System.out.println(line);
+		String[] stockLine = line.split(" ");
+		BigInteger sNum = new BigInteger(stockLine[0]);
+		content.put(sNum, Float.parseFloat(stockLine[1]));
+		// System.out.println(line);
 	    }
 
 	} catch (IOException e) {
@@ -116,11 +124,11 @@ public class Store {
     
     public Store() throws IOException {
 	
-	content = new HashMap<Integer, Float>();
+	content = new HashMap<BigInteger, Float>();
 
 	register();
 	System.out.println(readStockFile());
-
+	System.out.println(content.size());
 	
 	
 	// ServerSocket serversocket = null;
