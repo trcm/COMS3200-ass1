@@ -25,9 +25,14 @@ public class Store {
 
     // HashMap holding the content numbers and their prices
     private HashMap content;
+
+    // Sockets to connet to the bank and content servers
+    private Socket bankSocket;
+    private Socket contentSocket;
     
     /**
      * registers the store server with the name server 
+     * and retrieves the addresses for the bank and content servers.
      */
     public void register() throws IOException {
 
@@ -112,21 +117,33 @@ public class Store {
 		String[] stockLine = line.split(" ");
 		BigInteger sNum = new BigInteger(stockLine[0]);
 		content.put(sNum, Float.parseFloat(stockLine[1]));
-		// System.out.println(line);
 	    }
-
+	    for (Object id : content.keySet()) {
+		System.out.println((BigInteger)id + " " + content.get(id));
+	    }
 	} catch (IOException e) {
 	    return false;
 	}
 	return true;
     }
 
+    /**
+     *  connectToServer()
+     *  Opens the connections to the bank and content servers.
+     
+     * Alters the bankSocket and contentSocket variables.
+     */
+    public boolean connectToServers() {
+	
+	
+    }
     
     public Store() throws IOException {
 	
 	content = new HashMap<BigInteger, Float>();
 
 	register();
+	// connectToServers(bankAdd, contentAdd);
 	System.out.println(readStockFile());
 	System.out.println(content.size());
 	
