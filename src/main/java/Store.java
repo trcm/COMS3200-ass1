@@ -153,11 +153,11 @@ public class Store {
 	    String line;
 	    while ((line = buff.readLine()) != null) {
 		String[] stockLine = line.split(" ");
-		BigInteger sNum = new BigInteger(stockLine[0]);
+		Long sNum = new Long(stockLine[0]);
 		content.put(sNum, Float.parseFloat(stockLine[1]));
 	    }
 	    // for (Object id : content.keySet()) {
-	    // 	System.out.println((BigInteger)id + " " + content.get(id));
+	    // 	System.out.println((Long)id + " " + content.get(id));
 	    // }
 	} catch (IOException e) {
 	    System.err.println("Invalid command line arguments for Store");
@@ -171,12 +171,12 @@ public class Store {
      * Message the bank and return the banks response.  
      * The parameters taken by this function have already been checked for errors
      * by the parseMessage function.
-     * @param itemId - BigInteger id of the file to be purchased
+     * @param itemId - Long id of the file to be purchased
      * @param itemPrice - float representing the price of the item
      * @param ccNum - string representation of the users credit card number
      * @return If the bank accepts the transaction then return true, otherwise false.
      */
-    public String messageBank(BigInteger itemId, Float itemPrice, String ccNum) {
+    public String messageBank(Long itemId, Float itemPrice, String ccNum) {
 	bankServer.out.println("purchase " + itemId.toString() + " " + itemPrice + " " + ccNum);
 	String retString;
 	try {
@@ -198,76 +198,76 @@ public class Store {
  * @param message String representation of the message recieved
  * @return The parsed message that will be sent back to the client
  */
-public String parseMessage(String message) {
+    public String parseMessage(String message) {
 
-    // Parse a lookup message, simply return the content of the store to the client
-    if (message.toLowerCase().trim().equals("lookup")) {
-	String ret = "";
-	int count = 1;
-	for (Object key : content.keySet()) {
-	    ret = ret + count + ". " + (BigInteger)key + " " + content.get(key) + "\n";
-	    count++;
-	}
-	return ret;
-    } else if (message.toLowerCase().trim().contains("purchase")) {
-	// Purchase request recieved. 
+	// Parse a lookup message, simply return the content of the store to the client
+	if (message.toLowerCase().trim().equals("lookup")) {
+	    String ret = "";
+	    int count = 1;
+	    for (Object key : content.keySet()) {
+		ret = ret + count + ". " + (Long)key + " " + content.get(key) + "\n";
+		count++;
+	    }
+	    return ret;
+	} else if (message.toLowerCase().trim().contains("purchase")) {
+	    // Purchase request recieved. 
 
-	//split the message to get the id number
-	String idString = message.trim().split(" ")[1];
-	String ccNum = message.trim().split(" ")[2];
+	    //split the message to get the id number
+	    String idString = message.trim().split(" ")[1];
+	    String ccNum = message.trim().split(" ")[2];
 
-	if (ccNum.length() != 16) {
-	    return "Error";
-	}
+	    if (ccNum.length() != 16) {
+		return "Error";
+	    }
 	    
-	// Minus 1 to account for array index numbering
-	int id = Integer.parseInt(idString) - 1;
-	System.out.println(idString + "\n" + ccNum);
-	if (id > 9 || id < 0) {
-	    System.out.println("error");
-	}
-
-	// get the item id and item price from the stock hash
-	Object[] ids = content.keySet().toArray();
-	BigInteger itemId = (BigInteger)ids[id];
-	Float itemPrice = (Float)content.get(itemId);
-
-	// itemId, itemPrice and ccNum have been found, contact the bank
-
-	String outcome = messageBank(itemId, itemPrice, ccNum);
-
-	if (outcome.trim().equals("1")) {
-	    // message content server
-	    contentServer.out.println(itemId.toString());
-	    String contentRet;
-
-	    try {
-		contentRet = contentServer.in.readLine();
-		// if the content server returned the correct response, send it to the user
-		if (contentRet.length() > 1) {
-		    return contentRet;
-		}
-	    } catch (IOException e) {
-		// something went wrong
+	    // Minus 1 to account for array index numbering
+	    int id = Integer.parseInt(idString) - 1;
+	    System.out.println(idString + "\n" + ccNum);
+	    if (id > 9 || id < 0) {
+		System.out.println("error");
 	    }
 
-	    //otherwise send the aborted message
-	    String aborted = (id + 1) + " transaction aborted\n";
-	    return aborted;
-	} else {
-	    // something went wrong, send the transaction aborted mesasge
-	    // add one to get back to the original id number
-	    String aborted = (id + 1) + " transaction aborted\n";
-	    return aborted;
-	}
+	    // get the item id and item price from the stock hash
+	    Object[] ids = content.keySet().toArray();
+	    Long itemId = (Long)ids[id];
+	    Float itemPrice = (Float)content.get(itemId);
+
+	    // itemId, itemPrice and ccNum have been found, contact the bank
+
+	    String outcome = messageBank(itemId, itemPrice, ccNum);
+
+	    if (outcome.trim().equals("1")) {
+		// message content server
+		contentServer.out.println(itemId.toString());
+		String contentRet;
+
+		try {
+		    contentRet = contentServer.in.readLine();
+		    // if the content server returned the correct response, send it to the user
+		    if (contentRet.length() > 1) {
+			return contentRet + "\n";
+		    }
+		} catch (IOException e) {
+		    // something went wrong
+		}
+
+		//otherwise send the aborted message
+		String aborted = (id + 1) + " transaction aborted\n";
+		return aborted;
+	    } else {
+		// something went wrong, send the transaction aborted mesasge
+		// add one to get back to the original id number
+		String aborted = (id + 1) + " transaction aborted\n";
+		return aborted;
+	    }
 	    
-    } else {
-	// Just request recieved.
-	// TODO junk request
-    }
+	} else {
+	    // Just request recieved.
+	    // TODO junk request
+	}
 	
-    return "";
-}
+	return "";
+    }
     
 /**
  *  connectToServer()
@@ -292,7 +292,7 @@ public String parseMessage(String message) {
     
     public Store() throws IOException {
 	
-	content = new HashMap<BigInteger, Float>();
+	content = new HashMap<Long, Float>();
 
 	register();
 	connectToServers();

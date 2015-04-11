@@ -78,9 +78,9 @@ public class Bank {
 	while(true) {
 	    try {
 		// block, waiting for a conn. request
+		System.err.println("Bank waiting for incoming connections");
 		connSocket = serverSocket.accept();
 		// At this point, we have a connection
-		System.err.println("Bank waiting for incoming connections");
 		// System.out.println("Connection accepted from: " + connSocket.getInetAddress().getHostName());
 	    } catch (IOException e) {
 		e.printStackTrace();
@@ -105,10 +105,11 @@ public class Bank {
 
 		if (itemId % 2 == 0) {
 		    line = "1";
+		    System.out.println(itemId + " OK");
 		} else {
 		    line = "0";
+		    System.out.println(itemId + " NOT OK");
 		}
-		System.out.println(line);
 		// line = line.toUpperCase();
 		out.println(line);
 	    }
