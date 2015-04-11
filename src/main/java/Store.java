@@ -283,9 +283,9 @@ public String parseMessage(String message) {
 	serverAdds[0] = bankAdd.split(" ");
 	serverAdds[1] = contentAdd.split(" ");
 	bankServer = new ServerStruct("Bank", serverAdds[0][0], serverAdds[0][1]);
-	bankServer.out.println("bank");
+	// bankServer.out.println("bank");
 	contentServer = new ServerStruct("Content", serverAdds[1][0], serverAdds[1][1]);
-	contentServer.out.println("content");
+	// contentServer.out.println("content");
 	
 	return true;
     }
