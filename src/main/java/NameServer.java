@@ -57,7 +57,7 @@ public class NameServer {
 	ArrayList ret = new ArrayList<String>();
 	// tokenized version of the message from the sender
 	String[] tokens = message.toLowerCase().trim().split(" ");
-	System.out.println(tokens.length);
+	// System.out.println(tokens.length);
 	 
 	// Swtich statment which handles the queries from the sender, it the query
 	// isn't a register or lookup query then they are returned an error
@@ -194,7 +194,8 @@ public class NameServer {
 				// sc.register(key.selector(), SelectionKey.OP_WRITE, "parsing\n");
 				ArrayList parsed = parseMessage(message);
 				ByteBuffer send = Charset.forName("UTF-8").encode((String)parsed.get(0));
-				System.out.println(sc.write(send));
+				sc.write(send);
+				// System.out.println(sc.write(send));
 				// sc.close();
 				// buffer.flip();
 				
