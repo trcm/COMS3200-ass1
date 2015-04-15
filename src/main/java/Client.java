@@ -100,7 +100,7 @@ public class Client {
 	    System.err.println("Invalid command line arguments");
 	    System.exit(1);
 	}
-	if (request > 11 || request < 0) {
+	if (request > 10 || request < 0) {
 	    System.err.println("Invalid command line arguments");
 	    System.exit(0);
 	}

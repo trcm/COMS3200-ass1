@@ -103,7 +103,7 @@ public class Bank {
 
 		Long itemId = new Long(line.trim().split(" ")[1]);
 
-		if (itemId % 2 == 0) {
+		if (itemId % 2 != 0) {
 		    line = "1";
 		    System.out.println(itemId + " OK");
 		} else {

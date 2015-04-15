@@ -256,12 +256,12 @@ public class Store {
 		}
 
 		//otherwise send the aborted message
-		String aborted = (id + 1) + " \"transaction aborted\"\n";
+		String aborted = itemId + " \"transaction aborted\"\n";
 		return aborted;
 	    } else {
 		// something went wrong, send the transaction aborted mesasge
 		// add one to get back to the original id number
-		String aborted = (id + 1) + " \"transaction aborted\"\n";
+		String aborted = itemId + " \"transaction aborted\"\n";
 		return aborted;
 	    }
 	    
