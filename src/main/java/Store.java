@@ -89,7 +89,8 @@ public class Store {
 	    in = new BufferedReader(
 		new InputStreamReader(sendSocket.getInputStream()));
 	} catch (Exception e) {
-	    e.printStackTrace();
+	    System.err.println("Unable to connect to NameServer");
+	    System.exit(1);
 	}
 
 	String regString = "register store localhost " + stockPort;
@@ -245,19 +246,22 @@ public class Store {
 		    contentRet = contentServer.in.readLine();
 		    // if the content server returned the correct response, send it to the user
 		    if (contentRet.length() > 1) {
-			return contentRet + "\n";
+			String contentResponse = itemId + " ($ " + itemPrice +") CONTENT " + contentRet + "\n";
+			// item-id ($ item-price) CONTENT item-content\n
+			return contentResponse;
+			// return contentRet + "\n";
 		    }
 		} catch (IOException e) {
 		    // something went wrong
 		}
 
 		//otherwise send the aborted message
-		String aborted = (id + 1) + " transaction aborted\n";
+		String aborted = (id + 1) + " \"transaction aborted\"\n";
 		return aborted;
 	    } else {
 		// something went wrong, send the transaction aborted mesasge
 		// add one to get back to the original id number
-		String aborted = (id + 1) + " transaction aborted\n";
+		String aborted = (id + 1) + " \"transaction aborted\"\n";
 		return aborted;
 	    }
 	    
