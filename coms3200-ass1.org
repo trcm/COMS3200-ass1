@@ -1,0 +1,226 @@
+#+title: COMS3200 Assignment 1
+#+author: Thomas Midson - s4333060
+#+email: thomas.midson@uq.net.au
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [a4paper, 15pt]
+#+LATEX_HEADER: \usepackage[margin=0.9in]{geometry}
+\clearpage
+* Part A
+
+** Communication Primitives
+
+| Sending Process | Send              | Receiving | Recieve              | Message Format |
+|                 | Primitive         | Process   | Primitive            | Names          |
+|-----------------+-------------------+-----------+----------------------+----------------|
+| Client          | RPC Call          | Store     | non-blocking receive | 1, 2, 3, 4     |
+| Store           | non-blocking send | Client    | RPC Call             | 5, 6, 7        |
+| Store           | non-blocking send | Content   | Blocking receive     | 8              |
+| Content         | non-blocking send | Store     | Non-blocking receive | 9, 10          |
+| Store           | Non-blocking send | Financial | blocking receive     | 11             |
+| Financial       | Non-blocking send | Store     | Non-blocking receive | 12             |
+| VM              | Non-blocking send | License   | Non-Blocking receive | 13             |
+| License         | Non-blocking send | VM        | Blocking receive     | 14             |
+| VM              | Non-Blocking send | Tracker   | Blocking receive     | 15             |
+
+** Primitive Explanation
+
+When choosing the communication primitive it was important to note whether the purpose of the process and whether
+the process has anything else to do apart from simply respond to messages from other processes.  We will begin with the client.  
+The only tasks that the client has to do is send requests to the store and wait for the store to respond to them.  
+This is a classic example of the requirements for an RPC call.  This is the primitive that was chosen for both the 
+send and receive primates for the client.
+\\\\
+The store process on the other hand has quite a lot of processing to complete.  It is required to accept multiple clients 
+at once and must be contently connecting to other servers to complete the client's requests.  It must also contact the
+bank to ensure the client can purchase its desired content, as well as retrieving the content from the Content server.  
+Due to these factors, the Store process must be able to both process multiple requests concurrently and it must also be able 
+to send messages with blocking the other processes.  Non-blocking send and non-blocking receive are both good candidates for 
+this process
+\\\\
+Both the content and the Finance servers are similar in their design.  Both only process one kind of request and send either
+a confirmation, with or without accompanying data, or a rejection of the request.  They have no other processing to do and they
+aren't required to process multiple requests at once so the Blocking Receive primitive is ideal for this situation.  Due to the 
+small amount of data sent by both servers the use of Non-blocking or Blocking send is trivial so Non-blocking send was chosen.
+Another reason that blocking receive can be used is that we are making the assumption that multiple requests are begin buffered,
+this means that the server will still be able to queue processes but it will only actually process one at a time.
+\\\\
+The VM server has several different requirements.  It must first ensure that it has the license data for the content that
+the user wishes to play.  The VM cannot play the content without this license so it must wait for a reply from the License
+server before continuing. This makes non-blocking send and blocking receive good primitives for this process as we must 
+wait for the license data before continuing. The other task that the VM must do is send the tracking data through to the 
+Tracker server.  This request does not expect a response so we don't need to worry about getting a reply from the Tracking 
+server.  However, as the user would want the VM to play the content as quickly as possible, it is desirable to use the 
+Non-blocking send primitive to send this data to the Tracker.
+\\\\
+The tracker is the simplest of the servers and only needs to accept the tracking information from the VM when it plays the content.
+Blocking receive is sufficient here as no response has to be send back to the VM and there is no time requirement for the 
+processing of the tracking information.
+\\\\
+The License server is much like the Finance and Content servers, it needs to process request and return them to the client. 
+The License server won't be contacted every time the VM plays content but it will still be contacted fairly often. There is 
+no time limit based on the processing and as the operating system can buffer requests, it is adequate to use a Blocking Recieve
+on this server.  It has no other processing to do and only ever processes a single type of request from the VM so a blocking
+primitive is sufficient.
+
+** Message XDR
+
+The following message formats will be numbered for ease of use with the Message Format Name column in the Communication Primitives
+table.
+
+*** Client to Store
+
+
+1 - Store search - Single String
+
+| message-select   | search-term      | search-string          |
+|------------------+------------------+------------------------|
+| Unsigned Integer | Unsigned Integer | Variable Length String |
+| 4 bytes          | 4 bytes          | 4 - 52 bytes           |
+Overall message size: 12 - 60 Bytes
+\\\\
+In the XDR message above the search-term data is an integer specifying whether the user is searching for a
+keyword, title or author.
+\\\\
+2 - Store search - Double string
+
+| message-select   | author-string          | title-string           |
+|------------------+------------------------+------------------------|
+| Unsigned Integer | Variable length String | Variable Length String |
+| 4 bytes          | 4-52 bytes             | 4-52 bytes             |
+Overall message size: 12 - 108 bytes
+\\\\
+3 - Store search - Item ID
+
+| message-select   | item-id          |
+|------------------+------------------|
+| Unsigned Integer | Unsigned Integer |
+| 4 bytes          | 4 bytes          |
+Overall message size: 8 bytes
+\\\\
+4 - Purchase request 
+
+| message-select   | item-id          | credit-card         |
+|------------------+------------------+---------------------|
+| Unsigned Integer | Unsigned Integer | Fixed Length String |
+| 4 bytes          | 4 bytes          | 16 Byte             |
+Overall size: 24 bytes
+
+*** Store to Client 
+
+5 - Search response
+| message-select | item-id  | item-type | author          | title           | keywords        | item-price       |
+|----------------+----------+-----------+-----------------+-----------------+-----------------+------------------|
+| Unsigned       | Unsigned | Unsigned  | Variable length | Variable length | Variable length | Floating Point   |
+| Integer        | Integer  | Integer   | string          | String          | String          | double precision |
+| 4 bytes        | 4 bytes  | 4 bytes   | 4 - 32 bytes    | 8 - 32 bytes    | 8 - 32 bytes    | 8 bytes          |
+Overall message size: 40 - 116 bytes
+\\\\
+6 - Purchase rejection
+
+| message-select   | purchase-rejection  |
+|------------------+---------------------|
+| Unsigned integer | Fixed Length String |
+| 4 bytes          | 32 bytes            |
+Overall message size: 36 bytes
+\\\\
+7 - Content delivery
+
+| message-select   | media-content |
+|------------------+---------------|
+| Unsigned integer | Opaque Data   |
+| 4 bytes          | 4 - 500 bytes |
+Overall message size: 8 - 504 bytes
+
+*** Store to Content
+
+8 - Content Request
+
+| item-id          |
+|------------------|
+| Unsigned Integer |
+| 4 bytes          |
+Overall message size: 4 bytes
+
+*** Content to Store
+
+9 - Content delivery
+
+| message-select   | media-content        |
+|------------------+----------------------|
+| Unsigned Integer | Variable opaque data |
+| 4 bytes          | 4-500 bytes          |
+Overall message size: 8-504 bytes
+
+10 - Content retrieval rejection
+
+| message-select   | content-rejection   |
+|------------------+---------------------|
+| Unsigned Integer | Fixed Length String |
+| 4 bytes          | 32 bytes            |
+Overall message size: 36 byte
+
+*** Store to Financial
+
+11 - Financial Check
+
+| item-price                        | credit-card         |
+|-----------------------------------+---------------------|
+| Floating point - single precision | Fixed Length String |
+| 4 bytes                           | 16 bytes            |
+Overall message size: 20 bytes
+
+*** Financial to Store 
+
+12 - Financial Check response
+
+| purchase-response   |
+|---------------------|
+| Fixed Length String |
+| 32 bytes            |
+Overall message size: 32 bytes
+
+*** VM to License
+
+13 - Transfer use conditions
+
+| sealed-conditions      |
+|------------------------|
+| Variable length string |
+| 4-304 bytes            |
+Overall message size: 4 - 304 bytes
+
+*** License to VM
+
+14 - Send license conditions
+
+| license-id       | access-rights          | expiry-date      |
+|------------------+------------------------+------------------|
+| Unsigned Integer | Variable length String | Unsigned Integer |
+| 4 bytes          | 4 - 304 bytes          | 4 bytes          |
+Overall message size: 12 - 312 bytes
+
+*** VM to Tracker
+
+15 - Send tacking information
+
+| item-id          | date             |
+|------------------+------------------|
+| Unsigned Integer | Unsigned Integer |
+| 4 bytes          | 4 byte           |
+Overall message size: 8 bytes
+
+** Assumptions
+
+The system defined in the sections above has be designed using a number of assumptions.  
+The first is that the search strings sent from the client to the store for querying the content data base
+are of a length of 50 characters or less.
+
+It also assumes that the number of items in the database number less than 4294967295. It also assumes that the title and keyword
+variables of each content item is at least 4 characters long and the that title, author and keywords are no longer than
+30 bytes long. Concerning the content data itself, this system assumes that the data is at most 500 bytes in size and that the
+sealed use conditions accompanying each content item are at most 300 characters long.
+
+Concerning the interactions between the VM process and the License and Tracker servers, we assume that the VM won't have 
+any processing to do while retrieving the license from the server, that the Tracker has no other processing to do but
+receive the tracking information from the VM, that there won't ever be more then 4294967295 licenses and that the access
+rights for the data are at most 300 characters long.

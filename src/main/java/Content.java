@@ -149,15 +149,18 @@ public class Content {
 
 
     public static void main(String args[]) {
+	// Parse arguments
 	if (args.length != 3) {
 	    System.err.println("Invalid command line argument for Content");
 	    System.exit(0);
 	}
+	// Assign arguments to globals
 	contentPort = Integer.parseInt(args[0]);
 	contentFile = args[1];
 	nameServerPort = Integer.parseInt(args[2]);
 
 	try {
+	    // Start content server
 	    new Content();
 
 	} catch (IOException e) {

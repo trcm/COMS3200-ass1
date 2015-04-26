@@ -57,24 +57,22 @@ public class NameServer {
 	ArrayList ret = new ArrayList<String>();
 	// tokenized version of the message from the sender
 	String[] tokens = message.toLowerCase().trim().split(" ");
-	// System.out.println(tokens.length);
 	 
-	// Swtich statment which handles the queries from the sender, it the query
+	// Switch statment which handles the queries from the sender, it the query
 	// isn't a register or lookup query then they are returned an error
 	switch (tokens[0]) {
 	case "lookup":
-	    
+
+	    // Incorrect message format
 	    if (tokens.length != 2) {
-		// System.out.println("lookup error");
 		break;
 	    }	
 
 	    // check lookup query for the correct format and check the database for the entry
 	    String query = tokens[1].toLowerCase().trim();
-	    System.out.println(query);
+	    // System.out.println(query);
 	    // If the process is registered with the server then return the address and port for the sender
 	    if (hosts.containsKey(query)) {
-		// System.out.println("query in hashmap");
 		String val[] = (String[])hosts.get(query);
 		ret.add(val[0] + " " + val[1] + "\n");
 		return ret;
@@ -85,8 +83,8 @@ public class NameServer {
 	    }
 	    
 	case "register":
+	    // Incorrect register message
 	    if (tokens.length != 4) {
-		// System.out.println("register error");
 		ret.add("error");
 		return ret;
 	    } else {
@@ -100,8 +98,6 @@ public class NameServer {
 		    break;
 		}
 		hosts.put(name, details);
-		
-		// System.out.println(hosts.size());
 		
 		ret.add("registered\n");
 
@@ -135,9 +131,7 @@ public class NameServer {
 	    }
 	    // registers this channel with the given selector, returning a selection key
 	    serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-	    // System.out.println("<TCPServer> Server is activated, listening on portNum: "+ portNum);
 	    System.err.println("Name Server waiting for incoming connections ...");
-
 	    while (selector.select() > 0) {
 		for (SelectionKey key : selector.selectedKeys()) {
 		    // test whether this key's channel is ready to accept a new socket connection
@@ -176,7 +170,7 @@ public class NameServer {
 			    // finished reading, form message
 			    if (readBytes > 0) {
 				message = Charset.forName("UTF-8").decode(buffer).toString();
-				System.out.println(message);
+				// System.out.println(message);
 				buffer = null;
 			    }
 			} finally {
@@ -185,39 +179,14 @@ public class NameServer {
 			}
 			// react by Client's message
 			if (readBytes > 0) {
-			    // System.out.println("Message from Client" + sc.getRemoteAddress() + ": " + message);
 			    // check if the message is a lookup or register query
 			    if (message.toLowerCase().trim().contains("exit")) {
 				sc.close();
 				break;
 			    } else if (message.toLowerCase().trim().contains("lookup") || message.toLowerCase().trim().contains("register")) {
-				// sc.register(key.selector(), SelectionKey.OP_WRITE, "parsing\n");
 				ArrayList parsed = parseMessage(message);
 				ByteBuffer send = Charset.forName("UTF-8").encode((String)parsed.get(0));
 				sc.write(send);
-				// System.out.println(sc.write(send));
-				// sc.close();
-				// buffer.flip();
-				
-				// if (parsed.get(0) == "error") {
-				//     // System.out.println("crashed");
-
-				//     // create bytebuffer and send it
-				//     // ByteBuffer send = Charset.forName("UTF-8").encode((String)parsed.get(0));
-				//     // System.out.println(send);
-				//     // sc.register(selector, SelectionKey.OP_WRITE);
-				//     // sc.write(send);
-				//     // // sc.register(key.selector(), SelectionKey.OP_WRITE, parsed.get(0));
-				//     sc.close();
-				//     break;
-				// } else {
-				//     // parsing was successful, send the information back to the client
-				//     ByteBuffer send = Charset.forName("UTF-8").encode((String)parsed.get(0));
-				//     sc.register(selector, SelectionKey.OP_READ, buffer);
-				//     System.out.println(parsed.get(0));
-				//     sc.write(send);
-				//     // sc.close();
-				// }
 			    } else {
 				// junk message is received, close collection
 				sc.close();
@@ -263,7 +232,6 @@ public class NameServer {
 	}
 
 	portNum = Integer.parseInt(args[0]);
-	// System.out.println(portNum);
 	// Start new nameserver
 	new NameServer();
     }
